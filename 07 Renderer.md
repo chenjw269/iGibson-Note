@@ -45,7 +45,7 @@ Import Packages
     # Set Camera Field of View
     renderer.set_fov(90)
 
-### Render
+### Render Sensor
 
 Render an image frame
 
