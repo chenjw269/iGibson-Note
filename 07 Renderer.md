@@ -17,7 +17,9 @@ Key functions to use the renderer
 
 ## Examples
 
-Import Packages
+### Use Renderer
+
+Gibson simulator
 
     import logging
     import os
@@ -29,25 +31,34 @@ Import Packages
     from igibson.render.mesh_renderer.mesh_renderer_cpu import MeshRenderer
     from igibson.utils.assets_utils import get_scene_path
 
-### Initialize the Renderer
 
-    # Initialize Renderer
-    model_path = os.path.join(
-        get_scene_path("Rs"), 
-        "mesh_z_up.obj")
+    model_path = os.path.join(get_scene_path("Rs"), "mesh_z_up.obj")
+
     renderer = MeshRenderer(width=512, height=512)
     renderer.load_object(model_path)
     renderer.add_instance_group([0])
-    # Set Camera Position and Direction
     camera_pose = np.array([0, 0, 1.2])
     view_direction = np.array([1, 0, 0])
     renderer.set_camera(camera_pose, camera_pose + view_direction, [0, 0, 1])
-    # Set Camera Field of View
     renderer.set_fov(90)
+    frames = renderer.render(modes=("rgb", "normal", "3d"))
 
-### Render Sensor
+    # Render 3d points as depth map
+    depth = np.linalg.norm(frames[2][:, :, :3], axis=2)
+    depth /= depth.max()
+    frames[2][:, :, :3] = depth[..., None]
 
-Render an image frame
+    frames = cv2.cvtColor(np.concatenate(frames, axis=1), cv2.COLOR_RGB2BGR)
+    cv2.imshow("image", frames)
+    cv2.waitKey(0)
+
+iGibson simulator
+
+### Interactive Renderer
+
+### Multi Sensors
+
+Render a frame with specific modals
 
     # RGB, Normal and 3d Images Store in a List
     frames = renderer.render(modes=("rgb", "normal", "3d"))
@@ -83,3 +94,17 @@ Process segmentation image
         ins_seg = (ins_seg[:, :, 0:1] * MAX_INSTANCE_COUNT).astype(np.int32)
 
 - Map the segmentation result to image
+
+        # Render semantic segmentation result
+        MAX_CLASS_COUNT = 512
+        seg = (seg[:, :, 0:1] * MAX_CLASS_COUNT).astype(np.int32)
+        colors = matplotlib.cm.get_cmap("plasma", 16)
+        seg_img = np.squeeze(colors(seg), axis=2) * 255
+        cv2.imwrite(f"Segment image.jpg", seg_img)
+
+        # Render instance segmentation result
+        MAX_INSTANCE_COUNT = 1024
+        ins_seg = (ins_seg[:, :, 0:1] * MAX_INSTANCE_COUNT).astype(np.int32)
+        colors = matplotlib.cm.get_cmap("plasma", 16)
+        ins_seg_img = np.squeeze(colors(ins_seg), axis=2) * 255
+        cv2.imwrite(f"Instance Segment image.jpg", ins_seg_img)

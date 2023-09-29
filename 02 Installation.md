@@ -59,6 +59,7 @@ Recommend the second method if plan to modify iGibson in your project
   - Rename the folder from `"v1.14.15"` to `"openvr"`
 
 - Issue 3: *cmake
+  - Modify file `"...\iGibson\setup.py"`
   - line 41, replace
 
         out = subprocess.check_output(["cmake", "--version"])
@@ -66,6 +67,15 @@ Recommend the second method if plan to modify iGibson in your project
     with
 
         out = b'cmake version 3.27.5\n\nCMake suite maintained and supported by Kitware (kitware.com/cmake).\n'
+
+  - line 46, replace
+
+        cmake_version = LooseVersion(re.search(r"version\s*([\d.]+)", out.decode()).group(1))
+
+    with
+
+        cmake_version = "3.27.5"
+
   - line 106~107, comment line
 
         subprocess.check_call(["cmake", ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
